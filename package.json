@@ -1,13 +1,14 @@
 {
   "name": "plumber-requirejs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RequireJS (r.js) operation for Plumber pipelines",
   "main": "index",
   "dependencies": {
     "plumber": "~0.1.1",
     "q": "~0.9.7",
     "flatten": "0.0.1",
-    "requirejs": "~2.1.8"
+    "requirejs": "~2.1.8",
+    "extend": "~1.2.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

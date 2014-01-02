@@ -4,6 +4,7 @@ var q = require('q');
 var requirejs = require('requirejs');
 var fs = require('fs');
 var flatten = require('flatten');
+var extend = require('extend');
 
 var readFile = q.denodeify(fs.readFile);
 var unlink = q.denodeify(fs.unlink);
@@ -26,20 +27,16 @@ module.exports = function(baseOptions) {
         if (false && resource.isDirectory()) {
             // TODO: optimize whole directory
         } else {
-            var pathNoExt = resource.path().filename().replace(/\.js$/, '');
-            var tmpFile = 'rjsout.js'; // TODO: generate filename in tmp folder
+            var filename = resource.path().filename();
+            var pathNoExt = filename.replace(/\.js$/, '');
+            var tmpFile = filename; // TODO: generate filename in tmp folder
 
-            var options = {
+            var options = extend(baseOptions, {
                 // FIXME: do we always want to use baseUrl?
                 //        or as explicit argument?
                 baseUrl: resource.path().dirname(),
                 name: pathNoExt,
                 out: tmpFile
-            };
-
-            // FIXME: options should override this, not the other way around
-            Object.keys(baseOptions).forEach(function(key) {
-                options[key] = baseOptions[key];
             });
 
             return optimize(options).then(function() {
