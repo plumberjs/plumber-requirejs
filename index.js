@@ -12,9 +12,11 @@ var unlink = q.denodeify(fs.unlink);
 // wrap requirejs.optimize as a promise
 function optimize(options) {
     var defer = q.defer();
-    requirejs.optimize(options, function(response) {
-        defer.resolve(response);
-    });
+    requirejs.optimize(extend(options, {
+      out: function(compiledData, sourceMapText) {
+        defer.resolve({data: compiledData, sourceMap: sourceMapText});
+      }
+    }));
     // FIXME: error reject?
     return defer.promise;
 }
@@ -30,25 +32,21 @@ module.exports = function(baseOptions) {
         } else {
             var filename = resource.path().filename();
             var pathNoExt = filename.replace(/\.js$/, '');
-            var tmpFile = filename; // TODO: generate filename in tmp folder
 
+            // FIXME: re-reads data from disk :-(
             var options = extend(baseOptions, {
                 // FIXME: do we always want to use baseUrl?
                 //        or as explicit argument?
                 baseUrl: resource.path().dirname(),
                 name: pathNoExt,
-                out: tmpFile
+                optimize: 'none',
+                generateSourceMaps: true
             });
 
-            return optimize(options).then(function() {
-                // FIXME: don't hardcode encoding?
-                return readFile(tmpFile, 'utf-8');
-            }).then(function(compiledData) {
-                // Cleanup temporary file
-                unlink(tmpFile);
-
-                // and return generated data as a resource
-                return resource.withData(compiledData);
+            return optimize(options).then(function(output) {
+                return resource.
+                    withData(output.data).
+                    withSourceMap(output.sourceMap);
             });
         }
     });
