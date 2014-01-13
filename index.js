@@ -13,6 +13,11 @@ var unlink = q.denodeify(fs.unlink);
 function optimize(options) {
     var defer = q.defer();
     requirejs.optimize(extend(options, {
+      // never minimise source in here; it's the job of
+      // another operation
+      optimize: 'none',
+      // always generate a sourcemap
+      generateSourceMaps: true,
       out: function(compiledData, sourceMapText) {
         defer.resolve({data: compiledData, sourceMap: sourceMapText});
       }
@@ -38,12 +43,7 @@ module.exports = function(baseOptions) {
                 // FIXME: do we always want to use baseUrl?
                 //        or as explicit argument?
                 baseUrl: resource.path().dirname(),
-                name: pathNoExt,
-                // never minimise source in here; it's the job of
-                // another operation
-                optimize: 'none',
-                // always generate a sourcemap
-                generateSourceMaps: true
+                name: pathNoExt
             });
 
             return optimize(options).then(function(output) {
