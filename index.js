@@ -39,7 +39,10 @@ module.exports = function(baseOptions) {
                 //        or as explicit argument?
                 baseUrl: resource.path().dirname(),
                 name: pathNoExt,
+                // never minimise source in here; it's the job of
+                // another operation
                 optimize: 'none',
+                // always generate a sourcemap
                 generateSourceMaps: true
             });
 
