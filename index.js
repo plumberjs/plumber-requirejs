@@ -24,8 +24,9 @@ module.exports = function(baseOptions) {
 
     return mapEachResource(function(resource) {
         // TODO: accept directory as input resource
-        if (false && resource.isDirectory()) {
+        if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
+            throw new Error('RequireJS does not support optimising directories yet');
         } else {
             var filename = resource.path().filename();
             var pathNoExt = filename.replace(/\.js$/, '');
