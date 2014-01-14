@@ -1,5 +1,8 @@
 var chai = require('chai');
 chai.should();
+var chaiAsPromised = require("chai-as-promised");
+
+chai.use(chaiAsPromised);
 
 require('mocha-as-promised')();
 
@@ -25,9 +28,8 @@ describe('requirejs', function(){
   });
 
   it('should throw an exception if passed a directory', function(){
-    (function() {
-      requirejs()([createResource({path: 'test/fixtures'})]);
-    }).should.throw('RequireJS does not support optimising directories yet');
+    var output = requirejs()([createResource({path: 'test/fixtures'})]);
+    return output.should.eventually.be.rejectedWith('RequireJS does not support optimising directories yet');
   });
 
   describe('when passed a single AMD module', function() {
@@ -156,6 +158,23 @@ describe('requirejs', function(){
             name: null
           });
         }
+      });
+    });
+  });
+
+  describe('when passed two AMD files', function() {
+    var transformedResources;
+
+    beforeEach(function() {
+      transformedResources = requirejs()([
+        createResource({path: 'test/fixtures/app.js', type: 'javascript'}),
+        createResource({path: 'test/fixtures/multi.js', type: 'javascript'})
+      ]);
+    });
+
+    it('should return two resources', function(){
+      return transformedResources.then(function(resources) {
+        resources.length.should.equal(2);
       });
     });
   });
