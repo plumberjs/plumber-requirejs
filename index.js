@@ -1,4 +1,4 @@
-var mapEachResource = require('plumber').mapEachResource;
+var mapEachResourceSerially = require('plumber').mapEachResourceSerially;
 
 var q = require('q');
 var requirejs = require('requirejs');
@@ -29,7 +29,7 @@ function optimize(options) {
 module.exports = function(baseOptions) {
     baseOptions = baseOptions || {};
 
-    return mapEachResource(function(resource) {
+    return mapEachResourceSerially(function(resource) {
         // TODO: accept directory as input resource
         if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
