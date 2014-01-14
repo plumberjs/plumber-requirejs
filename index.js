@@ -6,19 +6,19 @@ var extend = require('extend');
 
 // wrap requirejs.optimize as a promise
 function optimize(options) {
-    var defer = q.defer();
-    requirejs.optimize(extend(options, {
-      // never minimise source in here; it's the job of
-      // another operation
-      optimize: 'none',
-      // always generate a sourcemap
-      generateSourceMaps: true,
-      out: function(compiledData, sourceMapText) {
-        defer.resolve({data: compiledData, sourceMap: sourceMapText});
-      }
-    }));
-    // FIXME: error reject?
-    return defer.promise;
+    return q.promise(function(resolve) {
+        // FIXME: error reject?
+        requirejs.optimize(extend(options, {
+            // never minimise source in here; it's the job of
+            // another operation
+            optimize: 'none',
+            // always generate a sourcemap
+            generateSourceMaps: true,
+            out: function(compiledData, sourceMapText) {
+                resolve([compiledData, sourceMapText]);
+            }
+        }));
+    });
 }
 
 module.exports = function(baseOptions) {
@@ -41,10 +41,8 @@ module.exports = function(baseOptions) {
                 name: pathNoExt
             });
 
-            return optimize(options).then(function(output) {
-                return resource.
-                    withData(output.data).
-                    withSourceMap(output.sourceMap);
+            return optimize(options).spread(function(data, sourceMap) {
+                return resource.withData(data).withSourceMap(sourceMap);
             });
         }
     });
