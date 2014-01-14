@@ -2,12 +2,7 @@ var mapEachResourceSerially = require('plumber').mapEachResourceSerially;
 
 var q = require('q');
 var requirejs = require('requirejs');
-var fs = require('fs');
-var flatten = require('flatten');
 var extend = require('extend');
-
-var readFile = q.denodeify(fs.readFile);
-var unlink = q.denodeify(fs.unlink);
 
 // wrap requirejs.optimize as a promise
 function optimize(options) {
