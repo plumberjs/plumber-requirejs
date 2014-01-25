@@ -3,6 +3,7 @@ var mapEachResourceSerially = require('plumber').mapEachResourceSerially;
 var q = require('q');
 var requirejs = require('requirejs');
 var extend = require('extend');
+var path = require('path');
 
 // wrap requirejs.optimize as a promise
 function optimize(options) {
@@ -21,6 +22,23 @@ function optimize(options) {
     });
 }
 
+// Delete any plugin prefix from the path, e.g. 'text!foo/bar.html' => 'foo/bar.html'
+// TODO: extract this to a SourceMap helper object
+function stripPluginsFromSourceMapPaths(sourceMapObj) {
+    sourceMapObj.sources = sourceMapObj.sources.map(function(path) {
+        return path.replace(/^.*!/, '');
+    });
+    return sourceMapObj;
+}
+
+// TODO: extract this to a SourceMap helper object
+function makeSourceMapPathsRelativeToRoot(sourceMapObj, baseDir, rootDir) {
+    sourceMapObj.sources = sourceMapObj.sources.map(function(relPath) {
+        return path.relative(rootDir, path.resolve(baseDir, relPath));
+    });
+    return sourceMapObj;
+}
+
 module.exports = function(baseOptions) {
     baseOptions = baseOptions || {};
 
@@ -32,17 +50,25 @@ module.exports = function(baseOptions) {
         } else {
             var filename = resource.path().filename();
             var pathNoExt = filename.replace(/\.js$/, '');
+            var basePath = resource.path().dirname();
+            var rootDir = process.cwd();
 
             // FIXME: re-reads data from disk :-(
             var options = extend(baseOptions, {
                 // FIXME: do we always want to use baseUrl?
                 //        or as explicit argument?
-                baseUrl: resource.path().dirname(),
+                baseUrl: basePath,
                 name: pathNoExt
             });
 
-            return optimize(options).spread(function(data, sourceMap) {
-                return resource.withData(data).withSourceMap(sourceMap);
+            return optimize(options).spread(function(data, sourceMapData) {
+                var sourceMap = JSON.parse(sourceMapData);
+                // TODO: don't let helpers mutate original
+                sourceMap = stripPluginsFromSourceMapPaths(sourceMap);
+                sourceMap = makeSourceMapPathsRelativeToRoot(sourceMap, basePath, rootDir);
+                return resource.
+                    withData(data).
+                    withSourceMap(JSON.stringify(sourceMap));
             });
         }
     });

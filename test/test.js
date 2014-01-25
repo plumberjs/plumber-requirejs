@@ -58,11 +58,11 @@ describe('requirejs', function(){
     it('should return it with an identity sourcemap', function(){
       return transformedResources.then(function(resources) {
         var map = new SourceMapConsumer(resources[0].sourceMap());
-        map.sources.should.deep.equal(['app.js']);
+        map.sources.should.deep.equal(['test/fixtures/app.js']);
         // identity mapping
         for (var i = 1; i <= 5; i++) {
           map.originalPositionFor({line: i, column: 0}).should.deep.equal({
-            source: 'app.js',
+            source: 'test/fixtures/app.js',
             line: i,
             column: 0,
             name: null
@@ -98,12 +98,12 @@ describe('requirejs', function(){
     it('should return it with a sourcemap', function(){
       return transformedResources.then(function(resources) {
         var map = new SourceMapConsumer(resources[0].sourceMap());
-        map.sources.should.deep.equal(['other.js', 'multi.js']);
+        map.sources.should.deep.equal(['test/fixtures/other.js', 'test/fixtures/multi.js']);
         // first file has identity mapping
         var i, offset = 5;
         for (i = 1; i < offset; i++) {
           map.originalPositionFor({line: i, column: 0}).should.deep.equal({
-            source: 'other.js',
+            source: 'test/fixtures/other.js',
             line: i,
             column: 0,
             name: null
@@ -113,7 +113,7 @@ describe('requirejs', function(){
         // second file is offset
         for (i = 0; i < 4; i++) {
           map.originalPositionFor({line: i + offset, column: 0}).should.deep.equal({
-            source: 'multi.js',
+            source: 'test/fixtures/multi.js',
             line: i + 1, // numbering from 1
             column: 0,
             name: null
@@ -148,11 +148,11 @@ describe('requirejs', function(){
     it('should return it with an identity sourcemap', function(){
       return transformedResources.then(function(resources) {
         var map = new SourceMapConsumer(resources[0].sourceMap());
-        map.sources.should.deep.equal(['not-amd.js']);
+        map.sources.should.deep.equal(['test/fixtures/not-amd.js']);
         // identity mapping
         for (var i = 1; i <= 5; i++) {
           map.originalPositionFor({line: i, column: 0}).should.deep.equal({
-            source: 'not-amd.js',
+            source: 'test/fixtures/not-amd.js',
             line: i,
             column: 0,
             name: null
@@ -178,6 +178,24 @@ describe('requirejs', function(){
       });
     });
   });
+
+  /* TODO: must manually load requirejs-text plugin
+  describe('when passed an AMD file with a text! dependency', function() {
+    var transformedResources;
+
+    beforeEach(function() {
+      transformedResources = requirejs()([
+        createResource({path: 'test/fixtures/with-text.js', type: 'javascript'})
+      ]);
+    });
+
+    it('should correctly reference the text dependency', function(){
+      return transformedResources.then(function(resources) {
+        resources.length.should.equal(2);
+      });
+    });
+  });
+  */
 
   // TODO: check if rjs error
 });
