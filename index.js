@@ -67,9 +67,9 @@ module.exports = function(baseOptions) {
                 sourceMap = stripPluginsFromSourceMapPaths(sourceMap);
                 sourceMap = makeSourceMapPathsRelativeToRoot(sourceMap, basePath, rootDir);
                 sourceMap.sourcesContent = sourceMap.sourcesContent.map(function (sourceContent) {
-                  return sourceContent.replace('\ndefine(', 'define(');
+                  return sourceContent.replace(/^\n/, '');
                 });
-                data = data.replace('\ndefine(', 'define(');
+                data = data.replace(/^\n/, '');
                 return resource.
                     withData(data).
                     withSourceMap(JSON.stringify(sourceMap));
