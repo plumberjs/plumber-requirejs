@@ -66,6 +66,10 @@ module.exports = function(baseOptions) {
                 // TODO: don't let helpers mutate original
                 sourceMap = stripPluginsFromSourceMapPaths(sourceMap);
                 sourceMap = makeSourceMapPathsRelativeToRoot(sourceMap, basePath, rootDir);
+                sourceMap.sourcesContent = sourceMap.sourcesContent.map(function (sourceContent) {
+                  return sourceContent.replace('\ndefine(', 'define(');
+                });
+                data = data.replace('\ndefine(', 'define(');
                 return resource.
                     withData(data).
                     withSourceMap(JSON.stringify(sourceMap));

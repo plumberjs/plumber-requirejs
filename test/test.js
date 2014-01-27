@@ -51,7 +51,7 @@ describe('requirejs', function(){
 
     it('should return the same data, with explicit name and dependencies', function(){
       return transformedResources.then(function(resources) {
-        resources[0].data().should.equal("\ndefine('app',[],function() {\n  return 42;\n});\n");
+        resources[0].data().should.equal("define('app',[],function() {\n  return 42;\n});\n");
       });
     });
 
@@ -91,7 +91,7 @@ describe('requirejs', function(){
 
     it('should return a resource containing the dependency', function(){
       return transformedResources.then(function(resources) {
-        resources[0].data().should.equal("\ndefine('other',[],function() {\n  return 100;\n});\n\ndefine('multi',['other'], function(other) {\n  return other + 1;\n});\n");
+        resources[0].data().should.equal("define('other',[],function() {\n  return 100;\n});\n\ndefine('multi',['other'], function(other) {\n  return other + 1;\n});\n");
       });
     });
 
@@ -111,7 +111,7 @@ describe('requirejs', function(){
         }
 
         // second file is offset
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 3; i++) {
           map.originalPositionFor({line: i + offset, column: 0}).should.deep.equal({
             source: 'test/fixtures/multi.js',
             line: i + 1, // numbering from 1
@@ -141,7 +141,7 @@ describe('requirejs', function(){
 
     it('should return the same data as was input', function(){
       return transformedResources.then(function(resources) {
-        resources[0].data().should.equal("\nvar thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n");
+        resources[0].data().should.equal("\nvar thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;define(\"not-amd\", function(){});\n");
       });
     });
 
