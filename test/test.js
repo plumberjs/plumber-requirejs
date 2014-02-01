@@ -141,7 +141,7 @@ describe('requirejs', function(){
 
     it('should return the same data as was input', function(){
       return transformedResources.then(function(resources) {
-        resources[0].data().should.equal("\nvar thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;define(\"not-amd\", function(){});\n");
+        resources[0].data().should.equal("\nvar thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n");
       });
     });
 
