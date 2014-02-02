@@ -66,6 +66,14 @@ module.exports = function(baseOptions) {
                 // TODO: don't let helpers mutate original
                 sourceMap = stripPluginsFromSourceMapPaths(sourceMap);
                 sourceMap = makeSourceMapPathsRelativeToRoot(sourceMap, basePath, rootDir);
+                // Due to a bug in RequireJS, we have to remove the erroneous
+                // new line at the beginning of the file in order for the
+                // source map to match correctly.
+                // As per: https://github.com/jrburke/requirejs/issues/1011
+                sourceMap.sourcesContent = sourceMap.sourcesContent.map(function (sourceContent) {
+                  return sourceContent.replace(/^\n/, '');
+                });
+                data = data.replace(/^\n/, '');
                 return resource.
                     withData(data).
                     withSourceMap(JSON.stringify(sourceMap));
