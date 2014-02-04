@@ -1,4 +1,5 @@
 var mapEachResourceSerially = require('plumber').mapEachResourceSerially;
+var SourceMap = require('mercator').SourceMap;
 
 var q = require('q');
 var requirejs = require('requirejs');
@@ -22,22 +23,22 @@ function optimize(options) {
     });
 }
 
-// Delete any plugin prefix from the path, e.g. 'text!foo/bar.html' => 'foo/bar.html'
-// TODO: extract this to a SourceMap helper object
-function stripPluginsFromSourceMapPaths(sourceMapObj) {
-    sourceMapObj.sources = sourceMapObj.sources.map(function(path) {
-        return path.replace(/^.*!/, '');
-    });
-    return sourceMapObj;
+// Delete any plugin prefix from the path,
+// e.g. 'text!foo/bar.html' => 'foo/bar.html'
+function stripPluginsPrefix(path) {
+    return path.replace(/^.*!/, '');
 }
 
-// TODO: extract this to a SourceMap helper object
-function makeSourceMapPathsRelativeToRoot(sourceMapObj, baseDir, rootDir) {
-    sourceMapObj.sources = sourceMapObj.sources.map(function(relPath) {
-        return path.relative(rootDir, path.resolve(baseDir, relPath));
-    });
-    return sourceMapObj;
+function stripErroneousLeadingNewline(source) {
+    return source.replace(/^\n/, '');
 }
+
+function resolvePathsRelativeTo(baseDir) {
+    return function(relPath) {
+        return path.resolve(baseDir, relPath);
+    };
+}
+
 
 module.exports = function(baseOptions) {
     baseOptions = baseOptions || {};
@@ -62,21 +63,24 @@ module.exports = function(baseOptions) {
             });
 
             return optimize(options).spread(function(data, sourceMapData) {
-                var sourceMap = JSON.parse(sourceMapData);
-                // TODO: don't let helpers mutate original
-                sourceMap = stripPluginsFromSourceMapPaths(sourceMap);
-                sourceMap = makeSourceMapPathsRelativeToRoot(sourceMap, basePath, rootDir);
+                var sourceMap = SourceMap.fromMapData(sourceMapData).
+                    mapSourcePaths(stripPluginsPrefix).
+                    mapSourcePaths(resolvePathsRelativeTo(basePath)).
+                    rebaseSourcePaths(rootDir);
+
                 // Due to a bug in RequireJS, we have to remove the erroneous
                 // new line at the beginning of the file in order for the
                 // source map to match correctly.
                 // As per: https://github.com/jrburke/requirejs/issues/1011
-                sourceMap.sourcesContent = sourceMap.sourcesContent.map(function (sourceContent) {
-                  return sourceContent.replace(/^\n/, '');
-                });
-                data = data.replace(/^\n/, '');
-                return resource.
-                    withData(data).
-                    withSourceMap(JSON.stringify(sourceMap));
+                sourceMap.sourcesContent = sourceMap.sourcesContent.map(stripErroneousLeadingNewline);
+                data = stripErroneousLeadingNewline(data);
+
+                // FIXME: combine with input source map? - tests!
+                // if (resource.sourceMap()) {
+                //     sourceMap = resource.sourceMap().apply(sourceMap);
+                // }
+
+                return resource.withData(data, sourceMap);
             });
         }
     });

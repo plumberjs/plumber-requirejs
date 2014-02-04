@@ -4,7 +4,8 @@
   "description": "RequireJS (r.js) operation for Plumber pipelines",
   "main": "index",
   "dependencies": {
-    "plumber": "~0.1.20",
+    "plumber": "~0.2.4",
+    "mercator": "~0.1.4",
     "q": "~0.9.7",
     "flatten": "0.0.1",
     "requirejs": "~2.1.8",
