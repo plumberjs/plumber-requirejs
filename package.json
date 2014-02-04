@@ -16,7 +16,9 @@
     "chai": "~1.8.1",
     "source-map": "~0.1.31",
     "mocha-as-promised": "~2.0.0",
-    "chai-as-promised": "~4.1.0"
+    "chai-as-promised": "~4.1.0",
+    "sinon": "~1.8.1",
+    "sinon-chai": "~2.5.0"
   },
   "scripts": {
     "test": "node_modules/.bin/mocha"

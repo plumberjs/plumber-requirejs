@@ -43,7 +43,7 @@ function resolvePathsRelativeTo(baseDir) {
 module.exports = function(baseOptions) {
     baseOptions = baseOptions || {};
 
-    return mapEachResourceSerially(function(resource) {
+    return mapEachResourceSerially(function(resource, supervisor) {
         // TODO: accept directory as input resource
         if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
@@ -67,6 +67,14 @@ module.exports = function(baseOptions) {
                     mapSourcePaths(stripPluginsPrefix).
                     mapSourcePaths(resolvePathsRelativeTo(basePath)).
                     rebaseSourcePaths(rootDir);
+
+                // Record all other sources found in the source map in
+                // the supervisor
+                var resourcePath = resource.path() && resource.path().absolute();
+                var dependencies = sourceMap.sources.filter(function(path) {
+                    return path !== resourcePath;
+                });
+                supervisor.dependOn(dependencies);
 
                 // Due to a bug in RequireJS, we have to remove the erroneous
                 // new line at the beginning of the file in order for the

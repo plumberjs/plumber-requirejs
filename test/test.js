@@ -1,8 +1,12 @@
 var chai = require('chai');
 chai.should();
-var chaiAsPromised = require("chai-as-promised");
 
+var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
+
+var sinon = require("sinon");
+var sinonChai = require("sinon-chai");
+chai.use(sinonChai);
 
 require('mocha-as-promised')();
 
@@ -10,6 +14,7 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 
 var Resource = require('plumber').Resource;
+var Supervisor = require('plumber/lib/util/supervisor');
 
 var requirejs = require('..');
 
@@ -19,6 +24,14 @@ function createResource(params) {
 
 
 describe('requirejs', function(){
+  var supervisor;
+
+  beforeEach(function() {
+    supervisor = new Supervisor();
+    supervisor.dependOn = sinon.spy();
+  });
+
+
   it('should be a function', function(){
     requirejs.should.be.a('function');
   });
@@ -28,7 +41,7 @@ describe('requirejs', function(){
   });
 
   it('should throw an exception if passed a directory', function(){
-    var output = requirejs()([createResource({path: 'test/fixtures'})]);
+    var output = requirejs()([createResource({path: 'test/fixtures'})], supervisor);
     return output.should.eventually.be.rejectedWith('RequireJS does not support optimising directories yet');
   });
 
@@ -38,7 +51,7 @@ describe('requirejs', function(){
     beforeEach(function() {
       var resource = createResource({path: 'test/fixtures/app.js', type: 'javascript'});
 
-      transformedResources = requirejs()([resource]);
+      transformedResources = requirejs()([resource], supervisor);
     });
 
     it('should return a resource with the same path and filename', function(){
@@ -78,7 +91,7 @@ describe('requirejs', function(){
     beforeEach(function() {
       var resource = createResource({path: 'test/fixtures/multi.js', type: 'javascript'});
 
-      transformedResources = requirejs()([resource]);
+      transformedResources = requirejs()([resource], supervisor);
     });
 
     it('should return a resource with the same path and filename', function(){
@@ -121,6 +134,13 @@ describe('requirejs', function(){
         }
       });
     });
+
+    it('should notify the supervisor of the dependency', function(){
+      return transformedResources.then(function(resources) {
+        supervisor.dependOn.should.have.callCount(1);
+        supervisor.dependOn.should.have.been.calledWith(['test/fixtures/other.js']);
+      });
+    });
   });
 
   describe('when passed a non-AMD file', function() {
@@ -128,7 +148,7 @@ describe('requirejs', function(){
 
     beforeEach(function() {
       var nonAmdResource = createResource({path: 'test/fixtures/not-amd.js', type: 'javascript'});
-      transformedResources = requirejs()([nonAmdResource]);
+      transformedResources = requirejs()([nonAmdResource], supervisor);
     });
 
     it('should return a resource with the same path and filename', function(){
@@ -169,7 +189,7 @@ describe('requirejs', function(){
       transformedResources = requirejs()([
         createResource({path: 'test/fixtures/app.js', type: 'javascript'}),
         createResource({path: 'test/fixtures/multi.js', type: 'javascript'})
-      ]);
+      ], supervisor);
     });
 
     it('should return two resources', function(){
