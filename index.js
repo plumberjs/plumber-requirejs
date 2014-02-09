@@ -39,9 +39,20 @@ function resolvePathsRelativeTo(baseDir) {
     };
 }
 
+// Unwanted requirejs options (don't make sense with the nature of
+// Plumber and this operation)
+var illegalOptions = ['baseUrl' , 'name', 'out'];
 
 module.exports = function(baseOptions) {
     baseOptions = baseOptions || {};
+
+    // Abort if any illegal option provided
+    illegalOptions.forEach(function(key) {
+      if (key in baseOptions) {
+        throw new Error("'" + key + "' option should not be used with plumber-requirejs, see documentation");
+      }
+    });
+
 
     return mapEachResourceSerially(function(resource, supervisor) {
         // TODO: accept directory as input resource

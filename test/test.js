@@ -42,6 +42,20 @@ describe('requirejs', function(){
         requirejs().should.be.a('function');
     });
 
+    it('should throw an error if passed an illegal option', function(){
+        (function() {
+            requirejs({name: 'foo'});
+        }).should.throw("'name' option should not be used with plumber-requirejs, see documentation");
+
+        (function() {
+            requirejs({out: 'foo'});
+        }).should.throw("'out' option should not be used with plumber-requirejs, see documentation");
+
+        (function() {
+            requirejs({baseUrl: 'foo'});
+        }).should.throw("'baseUrl' option should not be used with plumber-requirejs, see documentation");
+    });
+
     it('should throw an exception if passed a directory', function(){
         var output = requirejs()([createResource({path: 'test/fixtures'})], supervisor);
         return output.should.eventually.be.rejectedWith('RequireJS does not support optimising directories yet');
