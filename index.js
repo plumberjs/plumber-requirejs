@@ -48,9 +48,9 @@ module.exports = function(baseOptions) {
 
     // Abort if any illegal option provided
     illegalOptions.forEach(function(key) {
-      if (key in baseOptions) {
-        throw new Error("'" + key + "' option should not be used with plumber-requirejs, see documentation");
-      }
+        if (key in baseOptions) {
+            throw new Error("'" + key + "' option should not be used with plumber-requirejs, see documentation");
+        }
     });
 
 
