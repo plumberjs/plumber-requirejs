@@ -88,6 +88,8 @@ describe('requirejs', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/app.js']);
+                map.sourcesContent.should.deep.equal(["define('app',[],function() {\n  return 42;\n});\n"]);
+
                 // identity mapping
                 for (var i = 1; i <= 5; i++) {
                     map.originalPositionFor({line: i, column: 0}).should.deep.equal({
@@ -128,6 +130,11 @@ describe('requirejs', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/other.js', 'test/fixtures/multi.js']);
+                map.sourcesContent.should.deep.equal([
+                    "define('other',[],function() {\n  return 100;\n});\n",
+                    "define('multi',['other'], function(other) {\n  return other + 1;\n});\n"
+                ]);
+
                 // first file has identity mapping
                 var i, offset = 5;
                 for (i = 1; i < offset; i++) {
@@ -185,6 +192,8 @@ describe('requirejs', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/not-amd.js']);
+                map.sourcesContent.should.deep.equal(["var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n"]);
+
                 // identity mapping
                 for (var i = 1; i <= 5; i++) {
                     map.originalPositionFor({line: i, column: 0}).should.deep.equal({
