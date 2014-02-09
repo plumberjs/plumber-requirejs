@@ -202,6 +202,79 @@ describe('requirejs', function(){
     });
 
 
+    describe('when passed a file with a source map', function() {
+        var transformedResources;
+        var mainData = fs.readFileSync('test/fixtures/concatenated.js').toString();
+        var mainMapData = SourceMap.fromMapData(fs.readFileSync('test/fixtures/concatenated.js.map').toString());
+
+        beforeEach(function() {
+            transformedResources = requirejs()([
+                createResource({path: 'test/fixtures/concatenated.js', type: 'javascript',
+                                data: mainData, sourceMap: mainMapData})
+            ], supervisor);
+        });
+
+
+        it('should return a resource with a source map with correct properties from the input source map', function(){
+            return transformedResources.then(function(resources) {
+                var sourceMap = resources[0].sourceMap();
+
+                sourceMap.file.should.equal('concatenated.js');
+                sourceMap.sources.should.deep.equal(mainMapData.sources);
+                sourceMap.sourcesContent.should.deep.equal(mainMapData.sourcesContent);
+            });
+        });
+
+        it('should remap mappings based on the input source map', function() {
+            return transformedResources.then(function(resources) {
+                var map = new SourceMapConsumer(resources[0].sourceMap());
+
+                // FIXME: a better test would make requirejs do
+                // something, rather than these non-AMD files that are
+                // probably just passed through
+
+                /*
+               1 var x = 3;
+               2 var y = x;
+               3
+               4 /\* a comment *\/
+               5
+               6 function inc(x) {
+               7     return x + 1;
+               8 }
+               9
+              10 var z = inc(x);
+              11
+              12
+              13 /\* non-sensical library *\/
+              14 define('concatenated',[], function() {
+              15   var number = 1;
+              16
+              17   function addNumber(n) {
+              18     return n + number;
+              19   }
+              20
+              21   return addNumber;
+              22 });
+                 */
+                map.originalPositionFor({line: 1, column: 0}).should.deep.equal({
+                    source: 'test/fixtures/source.js',
+                    line: 1,
+                    column: 0,
+                    name: null
+                });
+            });
+        });
+
+        it('should register no path in the supervisor', function(){
+            return transformedResources.then(function() {
+                supervisor.dependOn.should.not.have.been.called;
+            });
+        });
+
+    });
+
+
     /* TODO: must manually load requirejs-text plugin
     describe('when passed an AMD file with a text! dependency', function() {
         var transformedResources;

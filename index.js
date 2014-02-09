@@ -85,10 +85,12 @@ module.exports = function(baseOptions) {
                 sourceMap.sourcesContent = sourceMap.sourcesContent.map(stripErroneousLeadingNewline);
                 data = stripErroneousLeadingNewline(data);
 
-                // FIXME: combine with input source map? - tests!
-                // if (resource.sourceMap()) {
-                //     sourceMap = resource.sourceMap().apply(sourceMap);
-                // }
+                // If the source had a sourcemap, rebase the LESS
+                // sourcemap based on that original map
+                var originalMapData = resource.sourceMap();
+                if (originalMapData) {
+                    sourceMap = originalMapData.apply(sourceMap);
+                }
 
                 return resource.withData(data, sourceMap);
             });
