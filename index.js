@@ -74,7 +74,9 @@ module.exports = function(baseOptions) {
                 var dependencies = sourceMap.sources.filter(function(path) {
                     return path !== resourcePath;
                 });
-                supervisor.dependOn(dependencies);
+                if (dependencies.length > 0) {
+                    supervisor.dependOn(dependencies);
+                }
 
                 // Due to a bug in RequireJS, we have to remove the erroneous
                 // new line at the beginning of the file in order for the
