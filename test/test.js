@@ -80,7 +80,7 @@ describe('requirejs', function(){
 
         it('should return the same data, with explicit name and dependencies', function(){
             return transformedResources.then(function(resources) {
-                resources[0].data().should.equal("define('app',[],function() {\n  return 42;\n});\n");
+                resources[0].data().should.equal("define('app',[],function() {\n  return 42;\n});\n\n");
             });
         });
 
@@ -88,7 +88,7 @@ describe('requirejs', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/app.js']);
-                map.sourcesContent.should.deep.equal(["define('app',[],function() {\n  return 42;\n});\n"]);
+                map.sourcesContent.should.deep.equal(["define('app',[],function() {\n  return 42;\n});\n\n"]);
 
                 // identity mapping
                 for (var i = 1; i <= 5; i++) {
@@ -122,7 +122,7 @@ describe('requirejs', function(){
 
         it('should return a resource containing the dependency', function(){
             return transformedResources.then(function(resources) {
-                resources[0].data().should.equal("define('other',[],function() {\n  return 100;\n});\n\ndefine('multi',['other'], function(other) {\n  return other + 1;\n});\n");
+                resources[0].data().should.equal("define('other',[],function() {\n  return 100;\n});\n\ndefine('multi',['other'], function(other) {\n  return other + 1;\n});\n\n");
             });
         });
 
@@ -131,9 +131,19 @@ describe('requirejs', function(){
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/other.js', 'test/fixtures/multi.js']);
                 map.sourcesContent.should.deep.equal([
-                    "define('other',[],function() {\n  return 100;\n});\n",
-                    "define('multi',['other'], function(other) {\n  return other + 1;\n});\n"
+                    "define('other',[],function() {\n  return 100;\n});\n\n",
+                    "define('multi',['other'], function(other) {\n  return other + 1;\n});\n\n"
                 ]);
+
+              /*
+             1 define('other',[],function() {
+             2   return 100;
+             3 });
+             4
+             5 define('multi',['other'], function(other) {
+             6   return other + 1;
+             7 });
+               */
 
                 // first file has identity mapping
                 var i, offset = 5;
@@ -184,7 +194,7 @@ describe('requirejs', function(){
 
         it('should return the same data as was input', function(){
             return transformedResources.then(function(resources) {
-                resources[0].data().should.equal("var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n");
+                resources[0].data().should.equal("var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n\n");
             });
         });
 
@@ -192,7 +202,7 @@ describe('requirejs', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/not-amd.js']);
-                map.sourcesContent.should.deep.equal(["var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n"]);
+                map.sourcesContent.should.deep.equal(["var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n\n"]);
 
                 // identity mapping
                 for (var i = 1; i <= 5; i++) {

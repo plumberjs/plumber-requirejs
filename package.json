@@ -8,7 +8,7 @@
     "mercator": "~0.1.4",
     "q": "~0.9.7",
     "flatten": "0.0.1",
-    "requirejs": "~2.1.8",
+    "requirejs": "~2.1.11",
     "extend": "~1.2.1"
   },
   "devDependencies": {

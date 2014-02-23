@@ -29,10 +29,6 @@ function stripPluginsPrefix(path) {
     return path.replace(/^.*!/, '');
 }
 
-function stripErroneousLeadingNewline(source) {
-    return source.replace(/^\n/, '');
-}
-
 function resolvePathsRelativeTo(baseDir) {
     return function(relPath) {
         return path.resolve(baseDir, relPath);
@@ -88,13 +84,6 @@ module.exports = function(baseOptions) {
                 if (dependencies.length > 0) {
                     supervisor.dependOn(dependencies);
                 }
-
-                // Due to a bug in RequireJS, we have to remove the erroneous
-                // new line at the beginning of the file in order for the
-                // source map to match correctly.
-                // As per: https://github.com/jrburke/requirejs/issues/1011
-                sourceMap.sourcesContent = sourceMap.sourcesContent.map(stripErroneousLeadingNewline);
-                data = stripErroneousLeadingNewline(data);
 
                 // If the source had a sourcemap, rebase the LESS
                 // sourcemap based on that original map
