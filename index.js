@@ -1,14 +1,14 @@
-var mapEachResourceSerially = require('plumber').mapEachResourceSerially;
+var operation = require('plumber').operation;
 var SourceMap = require('mercator').SourceMap;
 
-var q = require('q');
+var highland = require('highland');
 var requirejs = require('requirejs');
 var extend = require('extend');
 var path = require('path');
 
 // wrap requirejs.optimize as a promise
 function optimize(options) {
-    return q.promise(function(resolve) {
+    return highland(function(push, next) {
         // FIXME: error reject?
         requirejs.optimize(extend(options, {
             // never minimise source in here; it's the job of
@@ -16,8 +16,12 @@ function optimize(options) {
             optimize: 'none',
             // always generate a sourcemap
             generateSourceMaps: true,
-            out: function(compiledData, sourceMapText) {
-                resolve([compiledData, sourceMapText]);
+            out: function(compiledData, sourceMapData) {
+                push(null, {
+                    data: compiledData,
+                    sourceMapData: sourceMapData
+                });
+                push(null, highland.nil);
             }
         }));
     });
@@ -50,7 +54,9 @@ module.exports = function(baseOptions) {
     });
 
 
-    return mapEachResourceSerially(function(resource, supervisor) {
+    // FIXME: does it need to run serially??
+    // FIXME: supervisor
+    return operation.map(function(resource) {
         // TODO: accept directory as input resource
         if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
@@ -69,8 +75,9 @@ module.exports = function(baseOptions) {
                 name: pathNoExt
             });
 
-            return optimize(options).spread(function(data, sourceMapData) {
-                var sourceMap = SourceMap.fromMapData(sourceMapData).
+            return optimize(options).map(function(out) {
+                var data = out.data;
+                var sourceMap = SourceMap.fromMapData(out.sourceMapData).
                     mapSourcePaths(stripPluginsPrefix).
                     mapSourcePaths(resolvePathsRelativeTo(basePath)).
                     rebaseSourcePaths(rootDir);
@@ -81,9 +88,11 @@ module.exports = function(baseOptions) {
                 var dependencies = sourceMap.sources.filter(function(path) {
                     return path !== resourcePath;
                 });
-                if (dependencies.length > 0) {
-                    supervisor.dependOn(dependencies);
-                }
+
+                // FIXME: must re-introduce supervisor in plumber 0.3?
+                // if (dependencies.length > 0) {
+                //     supervisor.dependOn(dependencies);
+                // }
 
                 // If the source had a sourcemap, rebase the LESS
                 // sourcemap based on that original map
