@@ -14,7 +14,7 @@
     "plumber-util-test": "~0.3.0",
     "mocha": "~1.16.2",
     "chai": "~1.8.1",
-    "source-map": "~0.1.31",
+    "source-map": "~0.1.33",
     "sinon": "~1.8.1",
     "sinon-chai": "~2.5.0"
   },

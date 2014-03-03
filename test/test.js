@@ -259,7 +259,13 @@ describe('requirejs', function(){
             ]).resources;
         });
 
+        // FIXME: failing test because it seems to pick up the source
+        // map url comment at the end and map it to the concatenated
+        // file, which ends up in `sources' (it should not).
 
+        // As per the comment in the test below, it'd be
+        // better to have a more realistic test, e.g. a
+        // coffeescript AMD file that has real deps.
         it.skip('should return a resource with a source map with correct properties from the input source map', function(done){
             transformedResources.toArray(function(resources) {
                 var sourceMap = resources[0].sourceMap();
