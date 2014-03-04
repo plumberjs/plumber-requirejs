@@ -56,7 +56,7 @@ module.exports = function(baseOptions) {
 
     // FIXME: does it need to run serially??
     // FIXME: supervisor
-    return operation.map(function(resource) {
+    return operation.parallelFlatMap(function(resource) {
         // TODO: accept directory as input resource
         if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
