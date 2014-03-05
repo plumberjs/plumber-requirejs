@@ -1,6 +1,6 @@
 {
   "name": "plumber-requirejs",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "RequireJS (r.js) operation for Plumber pipelines",
   "main": "index",
   "dependencies": {
