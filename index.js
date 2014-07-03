@@ -1,14 +1,14 @@
 var operation = require('plumber').operation;
+var Rx = require('plumber').Rx;
 var SourceMap = require('mercator').SourceMap;
 
-var highland = require('highland');
 var requirejs = require('requirejs');
 var extend = require('extend');
 var path = require('path');
 
 // wrap requirejs.optimize as a promise
 function optimize(options) {
-    return highland(function(push, next) {
+    return Rx.Observable.create(function(observer) {
         // FIXME: error reject?
         requirejs.optimize(extend(options, {
             // never minimise source in here; it's the job of
@@ -17,11 +17,11 @@ function optimize(options) {
             // always generate a sourcemap
             generateSourceMaps: true,
             out: function(compiledData, sourceMapData) {
-                push(null, {
+                observer.onNext({
                     data: compiledData,
                     sourceMapData: sourceMapData
                 });
-                push(null, highland.nil);
+                observer.onCompleted();
             }
         }));
     });
@@ -54,9 +54,9 @@ module.exports = function(baseOptions) {
     });
 
 
-    // FIXME: does it need to run serially??
+    // FIXME: why does it need to run serially??
     // FIXME: supervisor
-    return operation.parallelFlatMap(function(resource) {
+    return operation.serialFlatMap(function(resource) {
         // TODO: accept directory as input resource
         if (resource.path().isDirectory()) {
             // TODO: optimize whole directory
