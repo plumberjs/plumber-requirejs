@@ -9,6 +9,7 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var fs = require('fs');
 
 var runOperation = require('plumber-util-test').runOperation;
+var completeWithResources = require('plumber-util-test').completeWithResources;
 
 var Resource = require('plumber').Resource;
 var Supervisor = require('plumber/lib/util/supervisor');
@@ -18,6 +19,10 @@ var requirejs = require('..');
 
 function createResource(params) {
     return new Resource(params);
+}
+
+function resourcesError() {
+  chai.assert(false, "error in resources observable");
 }
 
 
@@ -68,23 +73,21 @@ describe('requirejs', function(){
         });
 
         it('should return a resource with the same path and filename', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources.length.should.equal(1);
                 resources[0].path().absolute().should.equal('test/fixtures/app.js');
                 resources[0].filename().should.equal('app.js');
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return the same data, with explicit name and dependencies', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources[0].data().should.equal("define('app',[],function() {\n  return 42;\n});\n\n");
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return it with an identity sourcemap', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/app.js']);
 
@@ -99,9 +102,7 @@ describe('requirejs', function(){
                         name: null
                     });
                 }
-
-                done();
-            });
+            }, resourcesError, done);
         });
     });
 
@@ -115,23 +116,21 @@ describe('requirejs', function(){
         });
 
         it('should return a resource with the same path and filename', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources.length.should.equal(1);
                 resources[0].path().absolute().should.equal('test/fixtures/multi.js');
                 resources[0].filename().should.equal('multi.js');
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return a resource containing the dependency', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources[0].data().should.equal("define('other',[],function() {\n  return 100;\n});\n\ndefine('multi',['other'], function(other) {\n  return other + 1;\n});\n\n");
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return it with a sourcemap', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/other.js', 'test/fixtures/multi.js']);
                 map.sourcesContent.should.deep.equal([
@@ -169,17 +168,15 @@ describe('requirejs', function(){
                         name: null
                     });
                 }
-
-                done();
-            });
+            }, resourcesError, done);
         });
 
         // FIXME: must re-introduce supervisor in plumber 0.3?
-        it.skip('should notify the supervisor of the dependency', function(){
-            transformedResources.toArray(function(resources) {
+        it.skip('should notify the supervisor of the dependency', function(done){
+            completeWithResources(transformedResources, function(resources) {
                 supervisor.dependOn.should.have.callCount(1);
                 supervisor.dependOn.should.have.been.calledWith(['test/fixtures/other.js']);
-            });
+            }, resourcesError, done);
         });
     });
 
@@ -192,23 +189,21 @@ describe('requirejs', function(){
         });
 
         it('should return a resource with the same path and filename', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources.length.should.equal(1);
                 resources[0].path().absolute().should.equal('test/fixtures/not-amd.js');
                 resources[0].filename().should.equal('not-amd.js');
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return the same data as was input', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources[0].data().should.equal("var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n\n");
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return it with an identity sourcemap', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
                 map.sources.should.deep.equal(['test/fixtures/not-amd.js']);
                 map.sourcesContent.should.deep.equal(["var thisFileIsNotAnAMDModule = true;\n\nfunction meh() {}\n;\ndefine(\"not-amd\", function(){});\n\n"]);
@@ -222,9 +217,7 @@ describe('requirejs', function(){
                         name: null
                     });
                 }
-
-                done();
-            });
+            }, resourcesError, done);
         });
     });
 
@@ -238,11 +231,10 @@ describe('requirejs', function(){
             ]).resources;
         });
 
-        it('should return two resources', function(done){
-            transformedResources.toArray(function(resources) {
+        it.only('should return two resources', function(done){
+            completeWithResources(transformedResources, function(resources) {
                 resources.length.should.equal(2);
-            });
-            done();
+            }, resourcesError, done);
         });
     });
 
@@ -267,18 +259,17 @@ describe('requirejs', function(){
         // better to have a more realistic test, e.g. a
         // coffeescript AMD file that has real deps.
         it.skip('should return a resource with a source map with correct properties from the input source map', function(done){
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var sourceMap = resources[0].sourceMap();
 
                 sourceMap.file.should.equal('concatenated.js');
                 sourceMap.sources.should.deep.equal(mainMapData.sources);
                 sourceMap.sourcesContent.should.deep.equal(mainMapData.sourcesContent);
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should remap mappings based on the input source map', function(done) {
-            transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
                 // FIXME: a better test would make requirejs do
@@ -315,16 +306,14 @@ describe('requirejs', function(){
                     column: 0,
                     name: null
                 });
-
-                done();
-            });
+            }, resourcesError, done);
         });
 
         // FIXME: must re-introduce supervisor in plumber 0.3?
-        it.skip('should register no path in the supervisor', function(){
-            transformedResources.toArray(function() {
+        it.skip('should register no path in the supervisor', function(done){
+            completeWithResources(transformedResources, function() {
                 supervisor.dependOn.should.not.have.been.called;
-            });
+            }, resourcesError, done);
         });
 
     });
